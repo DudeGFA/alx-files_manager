@@ -1,5 +1,5 @@
 import sha1 from 'sha1';
-import dbClient from '../utils/db.js';
+import dbClient from '../utils/db';
 import Queue from 'bull';
 
 const userQueue = new Queue('userQueue', 'redis://127.0.0.1:6379');
@@ -19,7 +19,7 @@ class UsersController {
     }
 
     const users = dbClient.db.collection('users');
-    users.findone({ email }, (err, user) => {
+    users.findOne({ email }, (err, user) => {
       if (user) {
         response.status(400).json({ error: 'Already exist' });
       } else {
@@ -27,10 +27,10 @@ class UsersController {
         users.insertOne(
           {
             email,
-            password: hashedPassword
+            password: hashedPassword,
           },
         ).then((result) => {
-          response.status(201).json({ id: result.insertId, email });
+          response.status(201).json({ id: result.insertedId, email });
           userQueue.add({ userId: result.insertedId });
         }).catch((err) => console.log(err));
       }
